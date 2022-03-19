@@ -71,6 +71,32 @@ EOS
 %< qux
 ```
 
+それぞれ、次のように書くだけで生成できる。
+
+````markdown
+```terminal
+% echo 1
+1
+```
+````
+
+````markdown
+```terminal-marker
+%> 
+%< 
+%> echo foo; \
+echo 'bar
+baz'
+%< foo
+bar
+baz
+%> cat <<EOS
+qux
+EOS
+%< qux
+```
+````
+
 ## 引用ブロック
 
 > ```
