@@ -3,6 +3,11 @@ layout: default
 ---
 <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
+  <script src="/jekyll-blog/assets/js/thumbnail.js"></script>
+  <script>
+    window.addEventListener('load', () => generateThumbnailLink());
+  </script>
+
   <header class="post-header">
     <h1 class="post-title p-name" itemprop="name headline">{{ page.title | escape | markdownify }}</h1>
     <p class="post-meta">
@@ -29,7 +34,10 @@ layout: default
           </span>
           {%- if forloop.last == false %}, {% endif -%}
         {% endfor %}
-      {%- endif -%}</p>
+      {%- endif -%}<a class="thumbnail" href="" data-page-title="{{ page.title | markdownify | escape }}" data-site-title="{{ site.title | escape }}">
+            <i class="fa-regular fa-image"></i>
+          </a>
+    </p>
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">

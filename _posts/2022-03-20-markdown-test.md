@@ -1,8 +1,10 @@
 ---
-title: テスト + メモ
+title: テスト + メモ *A* **A** `A` \\(A\\)
 layout: post
 date:   2022-03-20 04:51:41 +0900
-author: rsk0315
+author: 
+  - rsk0315
+  - reinecco
 ---
 
 kramdown + highlight.js + \\(\\KaTeX\\)。
