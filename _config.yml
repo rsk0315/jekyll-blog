@@ -63,3 +63,9 @@ kramdown:
   math_engine: katex
   syntax_highlighter_opts:
     disable: true
+
+image_dir: https://raw.githubusercontent.com/rsk0315/jekyll-blog/gh-pages/assets/images
+
+twitter:
+  username: rsk0315_h4x
+  card: summary_large_image
