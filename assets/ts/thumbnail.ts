@@ -152,14 +152,20 @@ function generateThumbnail(pageTitle: string, siteTitle: string, renderMathInEle
       font-weight: bold;
       font-size: 150%;
   }
+  .thumbnail-note h2 {
+      font-family: 'Merriweather Sans', '07YasashisaGothic', 'Lato', sans-serif;
+      font-weight: bold;
+      font-size: 150%;
+      color: #f5390a;
+  }
 </style>
   </head>
 
   <body>
     <div style="position: relative; width: 1200px; height: 630px; background-color: #eee;">
       <div style="position: absolute; width: 1120px; height: 550px; background-color: #fff; margin: 40px;">
-        <div style="position: absolute; top: 85px; left: 5em">
-          <!-- <h2>[WIP] サムネイル用画像</h2> -->
+        <div style="position: absolute; top: 55px; left: 5em" class="thumbnail-note">
+          <!-- <h2>サムネイル確認用</h2> -->
         </div>
         <div style="position: relative; top: 50%; left: 7.5em;" class="thumbnail-page-title">
           <h1 class="post-title">${pageTitle}</h1>
