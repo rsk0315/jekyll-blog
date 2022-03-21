@@ -51,8 +51,3 @@
       addEventListenerToCopyButton();
   });
 </script>
-
-{%- if page.og_image != nil -%}
-<meta property="og:image" content="{{ site.image_dir }}/{{ page.og_image }}" />
-<meta name="twitter:image" content="{{ site.image_dir }}/{{ page.og_image }}" />
-{%- endif -%}

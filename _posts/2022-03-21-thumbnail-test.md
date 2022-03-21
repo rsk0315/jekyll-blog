@@ -3,7 +3,7 @@ title: 'Lorem ipsum dolor sit amet, foo foo foo foo foo foo foo foo foo foo \\(\
 layout: post
 date:   2022-03-21 13:00:00 +0900
 author: rsk0315
-og_image: thumbnail-test.png
+image: /assets/images/thumbnail-test.png
 ---
 
-a
+てすと、あああ
