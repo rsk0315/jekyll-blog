@@ -138,4 +138,4 @@ EOS
 ```
 のに対し、kramdown だとどちらも整形してくれなかった。
 
-`<span class="...">` とかは直接書ける。<span class="key">⌥⌃⇧⌘X</span> みたいな感じで。
+`<span class="...">` とかは直接書ける。<span class="key">⌥⌃⇧⌘X</span> みたいな感じで好きなようにできる。
