@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "module": "system",
+        "lib": ["es2021", "dom"],
+        "outDir": "../js"
+    },
+    "include": ["*.ts"]
+}

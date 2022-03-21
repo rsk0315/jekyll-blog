@@ -131,19 +131,12 @@ function addEventListenerToCopyButton() {
         e.addEventListener('click', function (ev) {
             var elt = ev.srcElement;
             elt.classList.add('copied');
-            // let tooltip = elt.nextElementSibling;
-            // tooltip.classList.add('copied');
             var input = elt.parentElement.innerText;
             copyToClipboard(input);
-            // elt.setAttribute('data-text', '\u2713');
             elt.setAttribute('data-text', '');
-            // https://idealcommercialboilers.com/images/svg/sprites/clipboard.svg
-            // elt.style.backgroundImage = '/assets/images/clipboard.svg';
-            // elt.innerHTML = '<img src="/assets/images/check.svg" height="15" class="clipboard">';
             elt.innerHTML = '<i class="fa-solid fa-check"></i>';
             setTimeout(function () {
                 elt.classList.remove('copied');
-                // tooltip.classList.remove('copied');
                 elt.setAttribute('data-text', 'Copy');
                 elt.innerHTML = '';
             }, COOL_TIME);

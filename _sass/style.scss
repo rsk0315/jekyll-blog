@@ -1,5 +1,5 @@
 body {
-    font-family: Lato;
+    font-family: 'Lato'; /* , '07YasashisaGothic'; */
 }
 
 code {
@@ -93,4 +93,18 @@ code.hljs {
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
     text-shadow: 0 1px 0 #fff;
+}
+
+a code {
+    color: #2a7ae2;
+}
+a:visited code {
+    color: #1756a9;
+}
+a:hover code {
+    color: #111111;
+}
+
+h1 code, h2 code {
+    font-size: 90%;
 }
