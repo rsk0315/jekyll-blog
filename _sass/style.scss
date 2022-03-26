@@ -108,3 +108,21 @@ a:hover code {
 h1 code, h2 code {
     font-size: 90%;
 }
+
+blockquote {
+    position: relative;
+    color: #828282;
+    border-left: 4px solid #e8e8e8;
+    padding-left: 45px;
+    font-size: 100%;
+    font-style: normal;
+}
+
+blockquote:before {
+    position: absolute;
+    top: -15px;
+    left: 15px;
+    content: '“';
+    font-family: 'Times New Roman', serif;
+    font-size: 300%;
+}
