@@ -118,6 +118,13 @@ blockquote {
     font-style: normal;
 }
 
+blockquote em {
+    font-style: italic;
+}
+blockquote strong {
+    font-weight: bold;
+}
+
 blockquote:before {
     position: absolute;
     top: -15px;

@@ -35,7 +35,7 @@ function renderTerminalInternal(
     let html = '';
     // let ps1 = '<span class="ps1"></span><span class="ps1-tooltip"></span>';
     let [openInput, openOutput, closeInput, closeOutput] = [
-        '<kbd class="input language-bash">',
+        '<kbd class="input language-zsh">',
         '<samp class="output language-plaintext">',
         '</kbd>\n',
         '</samp>\n'

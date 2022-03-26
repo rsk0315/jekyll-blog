@@ -11,7 +11,7 @@ function renderTerminalInternal(preTag, iMarker, oMarker, lines) {
     var html = '';
     // let ps1 = '<span class="ps1"></span><span class="ps1-tooltip"></span>';
     var _a = [
-        '<kbd class="input language-bash">',
+        '<kbd class="input language-zsh">',
         '<samp class="output language-plaintext">',
         '</kbd>\n',
         '</samp>\n'
