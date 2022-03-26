@@ -30,7 +30,8 @@ export default function(hljs) {
         contains: [ hljs.BACKSLASH_ESCAPE ],
     };
     const HERE_DOC = {
-        begin: /(?<!<)<<-?\s*(?=\w+)/,
+        // begin: /(?<![<])<<-?\s*(?=\w+)/,
+        begin: /(?:^|[^<])<<-?\s*(?=\w+)/,
         starts: {
             contains: [
                 hljs.END_SAME_AS_BEGIN({
@@ -400,7 +401,8 @@ export default function(hljs) {
             FUNCTION,
             ARITHMETIC,
             // hljs.HASH_COMMENT_MODE,
-            hljs.COMMENT(/(?<=\s)#/, /\n/),
+            // hljs.COMMENT(/(?<=\s)#/, /\n/),
+            hljs.COMMENT(/\s#/, /\n/),
             hljs.COMMENT(/^#/, /\n/),
             HERE_DOC,
             PATH_MODE,
