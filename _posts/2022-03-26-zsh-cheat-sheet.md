@@ -2,9 +2,8 @@
 title: Z shell のチートシート
 layout: post
 date:   2022-03-26 20:55:34+09:00
-modified_date: 2022-03-28 21:42:11+09:00
+modified_date: 2022-04-03 03:52:49+09:00
 author: rsk0315
-image: /assets/images/diff-algo.png
 ---
 
 Zsh 魔法すぎ。man を眺めたり例を書いたりしながらメモを残していきます。
@@ -99,6 +98,12 @@ true
 % : b
 % !{?a?}0  # 隣り合う文字との区切りを示す。必要なときに使えばいい。
 : a0
+```
+
+```terminal
+% : foo
+% !^ !" !!  # !" は除去され、それ以降の履歴展開は行われない。
+: : foo  \!\!
 ```
 
 #### Word designators
@@ -208,15 +213,15 @@ zsh: modifier failed: c
 
 ```terminal
 % : foo.c d/.bar baz
-% : !^:e !!2:e  # . 以降の部分のみを残す。
+% : !^:e !!2:e  # . 以降の部分のみを残す。r の逆。
 : c bar
-% : !?z?%:e  # ないとだめ。
+% : !?z?%:e  # . がないとだめ。
 zsh: modifier failed: e
 ```
 
 ```terminal
 % : //a//b/./../c d/e
-% : !^:h  # ディレクトリ名を残す。*h*ead らしい。
+% : !^:h  # ディレクトリ名を残す (`dirname`)。*h*ead らしい。
 : //a//b/./..
 % # その個数だけ取れる。連続する / は一つ扱い。
 % : !?c?%:h1 !%:h2 !%:h3 !%:h4 !%:h5 !%:h6 !%:h7
@@ -225,7 +230,12 @@ zsh: modifier failed: e
 : d d/e
 % : !?c?%:h100 !?e?%:h100  # 多くても平気。
 : //a//b/./../c d/e 
-% : !?c?%:h0  # 0 はだめ。
+% : !?c?%:h0  # h0 は h と同じそう。
+: //a//b/./..
+% : a
+% : !^:h1 !^:h100
+: a a
+% : !^:h  # / がないとき 0 はだめみたい。
 zsh: modifier failed: h
 ```
 
@@ -273,24 +283,151 @@ echo ''\''a."\'\''\'\''' 'a."\'\'
 
 ```terminal
 % : foo.c d/.bar baz
-% : !!1:r !!2:r
+% : !!1:r !!2:r  # . 以前の部分のみを残す。e の逆。
 : foo d/
-% !?z?%:r
+% !?z?%:r  # . がないとだめ。
 zsh: modifier failed: r
 ```
 
 ```terminal
 % : foo bar baz
-% : !*:s/b/m/  # s/l/r で l を r に置換。
+% : !^:s//_/
+zsh: no previous substitution
+% : !*:s/b/m/  # s/l/r/ で l を r に置換。
 : foo mar baz
 % : !?f?^:s/o/rom t/  # 空白で中断されないので注意。
 : from to
 % # / の終端を省略した場合コメントも書けない。なので分けている。
 % # :s/l/r/:G や :gs/l/r/ で最左マッチ以外も置換できる。
-% : !?bar?*:s/b/m/:G !*:gs/b/m
+% # l を省略すると直前と同じものが使われる。/ の部分は任意の文字を使える。
+% : !?bar?*:s/b/m/:G !*:gs##m
 : foo mar maz foo mar maz
 ```
 
 `!?f?^:s/o/rom t/` に関しては、syntax highlighting 側が正しくない。そのうち気が向いたら直すかも。
 
-なんか下に注が書いてある。読むのつかれちゃったあ。
+```terminal
+% : fooooo
+% : !^:s/o/x/
+: fxoooo
+% : !^:&  # & で同じ置換を繰り返す。
+: fxxooo
+% : !^:g&
+: fxxxxx
+% : !?fo?:&  # !?str? の検索を使うと、その部分が置換される？
+: xoooo
+% : !?fo?:s//x/  # s//repl/ の場合もそうなるっぽい。
+: xoooo
+% : foo foo
+```
+
+```terminal
+% : fooo
+% ^l^r は !!:s^l^r を表す。
+% ^o^x
+fxoo
+% ^o^x^:G
+fxxx
+```
+
+`^` は実際には `histchars` の 2 文字目が使われる。
+
+```terminal
+% : //a//b/./../c d/e
+% : !^:t  # ファイル名を残す (`basename`)。*t*ail らしい。
+: c
+% # その個数だけ取れる。連続する / は一つ扱い。
+% : !?//a?%:t1 !%:t2 !%:t3 !%:t4 !%:t5 !?d?%:t1
+: : c ../c ./../c b/./../c a//b/./../c e
+% : !?//a?%:t6  # 多いとだめみたい。
+zsh: modifier failed: t
+% : !?//a?%:t0  # t0 は t1 と同じ。
+: c
+% : a
+% : !^:h1 !^:h100
+: a a
+% : !^:h  # / がないとき 0 はだめみたい。
+zsh: modifier failed: h
+```
+
+```terminal
+% : foo
+% : !^:u  # *u*ppercase にする。
+: FOO
+```
+
+```terminal
+% : 'foo bar baz'
+% : !^:q / !^:x  # q と似ているが、x は空白で区切る。
+: ''\''foo bar baz'\''' / ''\''foo' 'bar' 'baz'\'''
+```
+
+```terminal
+% touch example.c sample.c
+% print -r -- *.c(#q:s/#%(#b)s(*).c/'S${match[1]}.C'/)
+example.c sample.c
+% set -o HIST_SUBST_PATTERN
+% : print -r -- *.c(#q:s/#%(#b)s(*).c/'S${match[1]}.C'/)
+Sample.C example.c
+```
+
+`HIST_SUBST_PATTERN` によって `s/l/r/` の `l` にパターンを使える。`#` `%` `(#b)` はそれぞれ「前方一致」「後方一致」「後方参照有効化」。後方参照は `${match[1]}` などでできる。`(#q)` は後述。この項目自体 globbing に移した方がよさそう。
+
+```terminal
+% foo='aaa aaa,aaa'
+% echo ${foo:fs/a/b}  # 変化しなくなるまで繰り返す。fix point？
+bbb bbb,bbb
+% echo ${foo:F:4:s/a/b}  # F:expr: で expr 回繰り返す。
+bbb baa,aaa
+% echo ${foo:ws/a/b}  # 単語ごとに適用する。
+baa baa,aaa
+% echo ${foo:W:,:s/a/b}  # W:sep: で sep を区切り文字にする。
+baa aaa,baa
+```
+
+これらは履歴展開では使えない。変数展開のところに移すかも。`:` には任意の文字が使えるが、`(` `[` `{` を使った場合はそれぞれ `)` `]` `}` で終端になる。
+
+### プロセス置換 (Process substitution)
+
+次の形式で行われる。
+
+> - `<(`_list_`)`
+> - `>(`_list_`)`
+> - `=(`_list_`)`
+
+システムが `/dev/fd` の機構をサポートしている場合、対応する file descriptor に置換される。
+
+`<()` `>()` の形式が使われた場合、_list_ の内容をサブプロセスとして実行する。
+`>()` であれば該当のファイルが _list_ の入力に、`<()` であれば該当のファイルが _list_ の出力になる。
+
+```terminal
+% cat << '' > foo
+a	1
+b	2
+c	3
+
+% cat << '' > bar
+A	_	10
+B	_	100
+C	_	1000
+
+% paste <(cut -f1 foo) <(cut -f3 bar)
+a	10
+b	100
+c	1000
+% paste <(cur -f1 foo) <(cut -f3 bar) | tee >(head -1) >(tail -1) >/dev/null
+a	10
+c	1000
+```
+
+`=()` を使った場合、代わりに一時ファイルを用いる。
+
+```terminal
+% () { print File $1:; cat $1 } =(print This be the verse)
+File /tmp/zshyuX1sP:
+This be the verse
+% ls File /tmp/zshyuX1sP
+ls: cannot access '/tmp/zshyuX1sP': No such file or directory
+```
+
+### 変数展開 (Parameter expansion)
