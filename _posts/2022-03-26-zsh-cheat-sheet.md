@@ -2,7 +2,7 @@
 title: Z shell のチートシート
 layout: post
 date:   2022-03-26 20:55:34+09:00
-modified_date: 2022-04-03 03:52:49+09:00
+modified_date: 2022-04-03 16:06:22+09:00
 author: rsk0315
 ---
 
@@ -32,7 +32,7 @@ Zsh 魔法すぎ。man を眺めたり例を書いたりしながらメモを残
 コマンドラインの `"..."` も含めたどこでも行われるが、`'...'` `$'...'` は除く。
 以下の形式で行われる。
 
-> `!` \[*event-designator*\] \[*word-designator*\] \[`:` *modifiers*\]...
+> `!` \[*event-designator*\] \[*word-designator*\] \[`:` *modifier*\]...
 
 *event-designator* と *word-designator* の双方が省略された場合は行われない。
 
@@ -431,3 +431,408 @@ ls: cannot access '/tmp/zshyuX1sP': No such file or directory
 ```
 
 ### 変数展開 (Parameter expansion)
+
+`$` で始まる。
+
+`SH_WORD_SPLIT` (default: off) が on でない限り、他のシェルと異なり空白での単語分割は行われないので注意が必要。
+
+```terminal
+% array=(foo '' baz) str='foo  bar'
+% p() { echo $1, $2, $3. }
+% set +o SH_WORD_SPLIT  # off
+% p $array; p ${array[@]}; p ${array[*]}; p $str
+foo, baz, .
+foo, baz, .
+foo, baz, .
+foo  bar, , .
+% p "$array"; p "${array[@]}"; p "${array[*]}"; p "$str"
+foo  baz, , .
+foo, , baz.
+foo  baz, , .
+foo  bar, , .
+% set -o SH_WORD_SPLIT  # on
+% p $array; p ${array[@]}; p ${array[*]}; p $str
+foo, baz, .
+foo, baz, .
+foo, baz, .
+foo, bar, .
+% p "$array"; p "${array[@]}"; p "${array[*]}"; p "$str"
+foo baz, , .
+foo, , baz.
+foo baz, , .
+foo bar, , .
+```
+
+履歴展開の `:`_modifier_ と同様に、`${i:s/foo/bar/}` のように書ける。
+
+```terminal
+% # この辺にまとめて例を書く。
+```
+
+```terminal
+% foo=hello foo1=world
+% echo $foo $foo1 ${foo}1  # [_0-9A-Za-z] が続くときは ${name} の形式で区切る。
+hello world hello1
+```
+
+より複雑な形式の置換を行うときは多くの場合 `{}` が必須となる。ただし、`KSH_ARRAY` が off のときは以下のものは `{}` がなくてもよい。
+
+- 一つの subscript
+- _name_ の後の `:`_modifiers
+- _name_ の前の `^` `=` `~` `#` `+`
+
+<!-- たぶん例があるとよい。 -->
+
+_name_ が array の場合は `KSH_ARRAYS` によって挙動が変わるっぽい (todo)。cf. flags `=`, `s:`_string_`:`。
+
+```terminal
+% unset foo; bar= baz=some
+echo ${+foo} ${+bar} ${+baz}  # set されているとき 1、そうでないとき 0。
+0 1 1
+```
+
+```terminal
+% unset foo; bar= baz=some
+% echo "'${foo-d}' '${bar-d}' '${baz-d}'"  # unset のときのデフォルト値。
+'d' '' 'some'
+% echo "'${foo:-d}' '${bar:-d}' '${baz:-d}' '${:-d}'"
+'d' 'd' 'some' 'd'
+```
+
+`${:-}` の場合は _name_ は省略できる。`:` をつけると空文字列のときもデフォルト値を使う。
+
+```terminal
+% unset foo; bar= baz=some
+% echo "'${foo+d}' '${bar+d}' '${baz+d}'"  # set されているときのみ置換する。
+'' 'd' 'd'
+% echo "'${foo:+d}' '${bar:+d}' '${baz:+d}' '${:+d}'"
+'' '' 'd' ''
+% opt1=foo; unset opt2
+% echo ${opt1:+--opt1=$opt1} ${opt2:+--opt2=$opt2}  # 使えそうな例。
+--opt1=foo
+```
+
+```terminal
+% unset foo; bar= baz=some
+% echo "$foo,$bar,$baz; ${foo=1},${bar=1},${baz=1}; $foo,$bar,$baz"
+,,some; 1,,some; 1,,some
+% unset foo; bar= baz=some
+% echo "$foo,$bar,$baz; ${foo:=1},${bar:=1},${baz:=1}; $foo,$bar,$baz"
+,,some; 1,1,some; 1,1,some
+% unset foo; bar= baz=some
+% echo "$foo,$bar,$baz; ${foo::=1},${bar::=1},${baz::=1}; $foo,$bar,$baz"
+,,some; 1,1,1; 1,1,1
+```
+
+`=` で unset に代入。`:=` で unset/null に代入。`::=` で常に代入。`-` `:-` と違い更新されることに注意。
+
+```terminal
+% unset foo; bar= baz=some
+% echo ${baz?ok}; echo ${bar?null}; echo ${foo?unset}
+some
+
+zsh: foo: unset
+% echo ${baz:?ok}; echo ${bar:?null}; echo ${foo:?unset}
+some
+zsh: bar: null
+```
+
+_name_ が unset のとき _word_ を表示して中断する。`:?` で空文字列も対象になるのは他と同じ。
+
+```terminal
+% foo=a/b/c.d.e
+% echo ${foo#*/} ${foo##*/}
+b/c.d.e c.d.e
+% bar='###_'
+% echo ${bar#*\#} ${bar##*'#'} ${bar##'*#'}
+##_ _ ###_
+```
+
+パターンにマッチする prefix を取り除く。`\` や `'` で quote できる。`*` を意図せず quote しないように注意。
+
+```terminal
+% array=(foo foo)
+% echo "${array%oo}", "${array[@]%oo}", "${array[*]%oo}"
+foo f, f f, foo f
+% echo ${array%oo}, ${array[@]%oo}, ${array[*]%oo}
+f f, f f, f f
+```
+
+array に対しては、quote されていない場合、または `[@]` を使った場合、各要素に対して置換が行われる。
+
+```terminal
+% foo=a/b/c.d.e
+% echo ${foo%.*} ${foo%%.*}
+a/b/c.d a/b/c
+```
+
+パターンにマッチする suffix を取り除く。
+
+```terminal
+% a=foo b=bar
+% echo ${a:#*o}, ${b:#*o}, ${(M)b:#b*}
+, bar, bar
+% array=(foo bar baz)
+% echo ${array:#b*}, ${(M)array:#b*}
+foo, bar baz
+```
+
+パターンにマッチするとき無に置換する。`(M)` で逆になる。
+
+```terminal
+% a=(1 4 6 2 8 4 3 3); b=(2 3 5 7)
+% echo ${a:|b}
+1 4 6 8 4
+% echo ${a:*b}
+2 3 3
+```
+
+`${`_name_`:|`_arrayName_`}` で、_name_ のうち _arrayName_ に含まれるものを除去する。`:*` では含まれないものを除去する。
+
+```terminal
+% a=(1 2 3 4 5) b=(x y z) c=_
+% echo ${a:^b}, ${a:^^b}, ${b:^c}, ${b:^^c}
+1 x 2 y 3 z, 1 x 2 y 3 z 4 x 5 y, 1 _, 1 _ 2 _
+```
+
+array を zip する。`:^` では短い方の長さに合わせられ、`:^^` では長い方の長さに合わせられる。
+scalar を使うと、長さ 1 の配列のように振る舞う。
+
+todo
+
+- `${`_name_`:`_offset_`}`
+- `${`_name_`:`_offset_`:`_length_`}`
+- `${`_name_`/`_pattern_`/`_repl_`}`
+- `${`_name_`//`_pattern_`/`_repl_`}`
+- `${`_name_`:/`_pattern_`/`_repl_`}`
+- `${#`_spec_`}`
+- `${^`_spec_`}`
+- `${=`_spec_`}`
+- `${~`_spec_`}`
+
+#### Parameter expansion flags
+
+- `#`
+- `%`
+- `@`
+- `A`
+- `a`
+- `b`
+- `c`
+- `C`
+- `D`
+- `e`
+- `f`
+- `g:`_opts_`:`
+- `i`
+- `k`
+- `L`
+- `n`
+- `o`
+- `O`
+- `P`
+- `q`
+- `Q`
+- `t`
+- `u`
+- `U`
+- `v`
+- `V`
+- `w`
+- `X`
+- `z`
+- `0`
+
+- `p`
+- `~`
+- `j:`_string_`:`
+- `l:`_expr_`::`_string1_`::`_string2_`:`
+- `m`
+- `r:`_expr_`::`_string1_`::`_string2_`:`
+- `s:`_string_`:`
+- `Z:`_opts_`:`
+- `_:`_flags_`:`
+
+- `S`
+- `I:`_expr_`:`
+- `B`
+- `E`
+- `M`
+- `N`
+- `R`
+
+#### Rules
+
+1. Nested substitution
+1. Internal parameter flags
+1. Parameter subscripting
+1. Parameter name replacement
+1. Double-quoted joining
+1. Nested subscripting
+1. Modifiers
+1. Character evaluation
+1. Length
+1. Forced joining
+1. Simple word splitting
+1. Case modification
+1. Escape sequence replacement
+1. Quote application
+1. Directory naming
+1. Visibility enhancement
+1. Lexical word splitting
+1. Uniqueness
+1. Ordering
+1. `RC_EXPAND_PARAM`
+1. Re-evaluation
+1. Padding
+1. Semantic joining
+1. Empty argument removal
+1. Nested parameter name replacement
+
+### Command substitution
+
+- `$(`...`)`
+- `$(<`...`)`
+
+### Arithmetic expansion
+
+- `$[`_exp_`]`
+- `$((`_exp_`))`
+
+### Brace expansion
+
+- _foo_`{`_xx_`,`_yy_`,`_zz_`}`_bar_
+- `{`_n1_`..`_n2_`}`
+- `{`_n1_`..`_n2_`..`_n3_`}`
+- `{`_c1_`..`_c2_`}` 
+- cf. `BRACE_CCL`
+
+### Filename expansion
+
+- `~`
+- `~0` `~+` `~-`, cf. `PUSHD_MINUS`
+
+#### Dynamic named directories
+
+#### Static named directories
+
+#### `=` expansion
+
+cf. `EQUALS` `MAGIC_EQUAL_SUBST`
+
+### Filename generation
+
+- `*` `(` `|` `<` `[` `?`, cf. `GLOB`
+- `^` `#`, cf. `EXTENDED_GLOB`
+
+#### Glob operators
+
+- `*`
+- `?`
+- `[`...`]`
+    - `[:alnum:]`
+    - `[:alpha:]`
+    - `[:ascii:]`
+    - `[:blank:]`
+    - `[:cntrl:]`
+    - `[:digit:]`
+    - `[:graph:]`
+    - `[:lower:]`
+    - `[:print:]`
+    - `[:punct:]`
+    - `[:space:]`
+    - `[:upper:]`
+    - `[:xdigit:]`
+    - `[:IDENT:]`
+    - `[:IFS:]`
+    - `[:IFSSPACE:]`
+    - `[:INCOMPLETE:]`
+    - `[:INVALID:]`
+    - `[:WORD:]`
+- `[^`...`]`, `[!`...`]`
+- `<`[_x_]`-`[_y_]`>`
+- `(`...`)`
+- _x_`|`_y_
+- `^`_x_
+- _x_`~`_y_
+- _x_`#`
+- _x_`##`
+
+#### ksh-like Glob operators
+
+- `@(`...`)`
+- `*(`...`)`
+- `+(`...`)`
+- `?(`...`)`
+- `!(`...`)`
+
+#### Globbing flags
+
+- `i`
+- `l`
+- `I`
+- `b`
+- `B`
+- `c`_N_`,`_M_
+- `m`
+- `M`
+- `a`_num_
+- `s`, `e`
+- `q`
+- `u`
+- `U`
+
+#### Approximate matching
+
+#### Recursive globbing
+
+#### Glob qualifiers
+
+- `/`
+- `F`
+- `.`
+- `@`
+- `=`
+- `p`
+- `*`
+- `%`
+- `%b`
+- `%c`
+- `r`
+- `w`
+- `x`
+- `A`
+- `I`
+- `E`
+- `R`
+- `W`
+- `X`
+- `s`
+- `S`
+- `t`
+- `f`_spec_
+- `e`_string_
+- `+`_cmd_
+- `d`_dev_
+- `l`[`-`\|`+`]_ct_
+- `U`
+- `G`
+- `u`_id_
+- `g`_id_
+- `a`[`Mwhms`][`-`\|`+`]_n_
+- `m`[`Mwhms`][`-`\|`+`]_n_
+- `c`[`Mwhms`][`-`\|`+`]_n_
+- `L`[`+`\|`-`]_n_
+- `^`
+- `-`
+- `M`
+- `T`
+- `N`
+- `D`
+- `n`
+- `Y`_n_
+- `o`_c_
+- `O`_c_
+- `[`_beg_[`,`_end_]`]`
+- `P`_string_
+
