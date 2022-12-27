@@ -27,8 +27,8 @@ url: "https://rsk0315.github.io" # the base hostname & protocol for your site, e
 
 minima:
   social_links:
-    twitter: rsk0315_h4x
-    github: rsk0315
+    - { platform: twitter, user_url: "https://twitter.com/rsk0315_h4x" }
+    - { platform: github, user_url: "https://github.com/rsk0315" }
 
 # Build settings
 # theme: minima
